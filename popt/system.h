@@ -22,6 +22,7 @@
 #ifdef _WIN32
 #include <io.h>
 #include <malloc.h>
+#include <process.h>
 #define getuid() 0
 #define geteuid() 0
 #endif
@@ -58,6 +59,8 @@ char *alloca ();
 #if HAVE_MCHECK_H && defined(__GNUC__)
 #define	vmefail()	(fprintf(stderr, "virtual memory exhausted.\n"), exit(EXIT_FAILURE), NULL)
 #define xstrdup(_str)   (strcpy((malloc(strlen(_str)+1) ? : vmefail()), (_str)))
+#elif defined(WIN32)
+#define	xstrdup(_str)	_strdup(_str)
 #else
 #define	xstrdup(_str)	strdup(_str)
 #endif  /* HAVE_MCHECK_H && defined(__GNUC__) */

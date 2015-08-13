@@ -5,6 +5,13 @@
 #include "system.h"
 #include "poptint.h"
 
+#ifdef WIN32
+#define open _open
+#define lseek _lseek
+#define read _read
+#define close _close
+#endif
+
 static void configLine(poptContext con, char * line) {
     int nameLength = strlen(con->appName);
     char * opt;

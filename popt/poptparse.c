@@ -6,6 +6,11 @@
 
 #define POPT_ARGV_ARRAY_GROW_DELTA 5
 
+#ifdef WIN32
+#pragma warning (push)
+#pragma warning (disable: 4090)
+#endif
+
 int poptDupArgv(int argc, const char **argv,
 		int * argcPtr, const char *** argvPtr)
 {
@@ -97,3 +102,7 @@ int poptParseArgvString(const char * s, int * argcPtr, const char *** argvPtr)
 
     return 0;
 }
+
+#ifdef WIN32
+#pragma warning (pop)
+#endif

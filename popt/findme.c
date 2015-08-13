@@ -5,6 +5,10 @@
 #include "system.h"
 #include "findme.h"
 
+#ifdef WIN32
+#define access _access
+#endif
+
 const char * findProgramPath(const char * argv0) {
     char * path = getenv("PATH");
     char * pathbuf;

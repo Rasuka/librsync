@@ -6,6 +6,11 @@
 #include "findme.h"
 #include "poptint.h"
 
+#ifdef WIN32
+#pragma warning (push)
+#pragma warning (disable: 4090)
+#endif
+
 #ifndef HAVE_STRERROR
 static char * strerror(int errno) {
     extern int sys_nerr;
@@ -267,7 +272,11 @@ static void execCommand(poptContext con) {
 #endif
 #endif
 
+#ifdef WIN32
+    _execvp(argv[0], (char *const *)argv);
+#else
     execvp(argv[0], (char *const *)argv);
+#endif
 }
 
 /*@observer@*/ static const struct poptOption *
@@ -772,3 +781,8 @@ int poptStrippedArgv(poptContext con, int argc, char **argv)
     
     return(numargs);
 }
+
+#ifdef WIN32
+#pragma warning (pop)
+#endif
+
