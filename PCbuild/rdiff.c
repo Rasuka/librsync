@@ -297,11 +297,7 @@ rs_result rdiff_sig(const char *baseFile, const char *sigFile)
 
 static rs_result rdiff_delta_internal(poptContext opcon)
 {
-    FILE            *sig_file, *new_file, *delta_file;
     char const      *sig_name, *new_name, *delta_name;
-    rs_result       result;
-    rs_signature_t  *sumset;
-    rs_stats_t      stats;
 
     if (!(sig_name = poptGetArg(opcon))) {
         rdiff_usage("Usage for delta: "
@@ -371,6 +367,15 @@ static rs_result rdiff_patch_internal(poptContext opcon)
     return rdiff_patch(basis_name, delta_name, new_name);
 }
 
+//static void mytrace(int level, char const *msg)
+//{
+//	FILE* logfile = fopen("C:\\librsync.log", "ab");
+//
+//	fwrite(msg, strlen(msg), 1, logfile);
+//
+//	fclose(logfile);
+//}
+
 rs_result rdiff_patch(const char *baseFile, const char *deltaFile, const char *newFile)
 {
     /*  patch BASIS [DELTA [NEWFILE]] */
@@ -378,9 +383,19 @@ rs_result rdiff_patch(const char *baseFile, const char *deltaFile, const char *n
     rs_stats_t          stats;
     rs_result           result;
 
+	//rs_trace_to(mytrace);
+
     basis_file = rs_file_open(baseFile, "rb");
+	if (basis_file == NULL)
+		return RS_IO_ERROR;
+
     delta_file = rs_file_open(deltaFile, "rb");
-    new_file =   rs_file_open(newFile, "wb");
+	if (delta_file == NULL)
+		return RS_IO_ERROR;
+
+    new_file = rs_file_open(newFile, "wb");
+	if (new_file == NULL)
+		return RS_IO_ERROR;
 
     result = rs_patch_file(basis_file, delta_file, new_file, &stats);
 
