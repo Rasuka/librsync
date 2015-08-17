@@ -21,6 +21,21 @@
 
 #include "mdfour.h"
 #include "rollsum.h"
+#include "blake2.h"
+
+typedef enum rs_checksum_inout {
+	RS_CHECKSUM_NONE,
+	RS_CHECKSUM_ON_INPUT,
+	RS_CHECKSUM_ON_OUTPUT
+} rs_checksum_inout_t;
+
+typedef struct rs_checksum
+{
+	rs_checksum_inout_t	direction;
+	blake2b_state		state;
+	char*				checksum;
+	size_t				checksum_len;
+} rs_checksum_t;
 
 struct rs_job {
     int                 dogtag;
@@ -92,6 +107,8 @@ struct rs_job {
     void            *copy_arg;
 
     int             magic;
+
+	rs_checksum_t	checksum;
 };
 
 

@@ -86,6 +86,11 @@ rs_whole_run(rs_job_t *job, FILE *in_file, FILE *out_file)
     if (out_fb)
         rs_filebuf_free(out_fb);
 
+	if (job->checksum.direction != RS_CHECKSUM_NONE)
+	{
+		blake2b_final(&job->checksum.state, job->checksum.checksum, BLAKE2B_OUTBYTES);
+	}
+
     return result;
 }
 
@@ -105,10 +110,8 @@ rs_whole_run(rs_job_t *job, FILE *in_file, FILE *out_file)
  * \sa rs_sig_begin()
  */
 rs_result
-rs_sig_file(FILE *old_file, FILE *sig_file, size_t new_block_len,
-            size_t strong_len,
-	    rs_magic_number sig_magic,
-	    rs_stats_t *stats)
+rs_sig_file(FILE *old_file, FILE *sig_file, size_t new_block_len, size_t strong_len, rs_magic_number sig_magic,
+            rs_stats_t *stats, char* checksum, size_t checksum_len)
 {
     rs_job_t        *job;
     rs_result       r;
@@ -117,6 +120,10 @@ rs_sig_file(FILE *old_file, FILE *sig_file, size_t new_block_len,
     r = rs_whole_run(job, old_file, sig_file);
     if (stats)
         memcpy(stats, &job->stats, sizeof *stats);
+
+	if (checksum != NULL)
+		memcpy(checksum, job->checksum.checksum, MIN(checksum_len, job->checksum.checksum_len));
+
     rs_job_free(job);
 
     return r;
@@ -148,7 +155,7 @@ rs_loadsig_file(FILE *sig_file, rs_signature_t **sumset, rs_stats_t *stats)
 
 rs_result
 rs_delta_file(rs_signature_t *sig, FILE *new_file, FILE *delta_file,
-              rs_stats_t *stats)
+              rs_stats_t *stats, char* checksum, size_t checksum_len)
 {
     rs_job_t            *job;
     rs_result           r;
@@ -159,6 +166,9 @@ rs_delta_file(rs_signature_t *sig, FILE *new_file, FILE *delta_file,
 
     if (stats)
         memcpy(stats, &job->stats, sizeof *stats);
+	
+	if (checksum != NULL)
+		memcpy(checksum, job->checksum.checksum, MIN(checksum_len, job->checksum.checksum_len));
 
     rs_job_free(job);
 
@@ -168,7 +178,7 @@ rs_delta_file(rs_signature_t *sig, FILE *new_file, FILE *delta_file,
 
 
 rs_result rs_patch_file(FILE *basis_file, FILE *delta_file, FILE *new_file,
-                        rs_stats_t *stats)
+                        rs_stats_t *stats, char* checksum, size_t checksum_len)
 {
     rs_job_t            *job;
     rs_result           r;
@@ -179,6 +189,9 @@ rs_result rs_patch_file(FILE *basis_file, FILE *delta_file, FILE *new_file,
     
     if (stats)
         memcpy(stats, &job->stats, sizeof *stats);
+
+	if (checksum != NULL)
+		memcpy(checksum, job->checksum.checksum, MIN(checksum_len, job->checksum.checksum_len));
 
     rs_job_free(job);
 

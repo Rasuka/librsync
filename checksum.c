@@ -32,7 +32,6 @@
 #include "checksum.h"
 #include "blake2.h"
 
-
 /* This can possibly be used to restart the checksum system in the
  * case where we detected corruption.  I'm not sure yet how to make
  * this useful in librsync. */

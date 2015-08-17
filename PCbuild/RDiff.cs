@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text;
 
 namespace LibRSync
 {
@@ -8,10 +9,10 @@ namespace LibRSync
 		private static extern RSyncResult rdiff_sig(string baseFile, string sigFile);
 
 		[DllImport("rdiff.dll", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
-		private static extern RSyncResult rdiff_delta(string sigFile, string newFile, string deltaFile);
+		private static extern RSyncResult rdiff_delta(string sigFile, string newFile, string deltaFile, StringBuilder checksum, uint checksumLength);
 
 		[DllImport("rdiff.dll", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
-		private static extern RSyncResult rdiff_patch(string baseFile, string deltaFile, string newFile);
+		private static extern RSyncResult rdiff_patch(string baseFile, string deltaFile, string newFile, StringBuilder checksum, uint checksumLength);
 
 		private enum RSyncResult
 		{
@@ -46,9 +47,11 @@ namespace LibRSync
 			}
 		}
 
-		public static void Delta(string signatureFile, string newFile, string deltaFile)
+		public static void Delta(string signatureFile, string newFile, string deltaFile, out string checksum)
 		{
-			RSyncResult result = rdiff_delta(signatureFile, newFile, deltaFile);
+			StringBuilder checksumBuilder = new StringBuilder(128);
+
+			RSyncResult result = rdiff_delta(signatureFile, newFile, deltaFile, checksumBuilder, (uint)checksumBuilder.Capacity);
 			switch (result)
 			{
 				case RSyncResult.RS_DONE:
@@ -60,11 +63,15 @@ namespace LibRSync
 				default:
 					throw new System.Exception("Failed to calculate delta of the file (" + result + "): " + signatureFile + ", new:" + newFile + " delta: " + deltaFile);
 			}
+
+			checksum = checksumBuilder.ToString();
 		}
 
-		public static void Patch(string oldFile, string deltaFile, string output)
+		public static void Patch(string oldFile, string deltaFile, string output, out string checksum)
 		{
-			RSyncResult result = rdiff_patch(oldFile, deltaFile, output);
+			StringBuilder checksumBuilder = new StringBuilder(128);
+
+			RSyncResult result = rdiff_patch(oldFile, deltaFile, output, checksumBuilder, (uint)checksumBuilder.Capacity);
 			switch (result)
 			{
 				case RSyncResult.RS_DONE:
@@ -76,6 +83,8 @@ namespace LibRSync
 				default:
 					throw new System.Exception("Failed to patch file (" + result + "): " + oldFile + " + " + deltaFile + " => " + output);
 			}
+
+			checksum = checksumBuilder.ToString();
 		}
 	}
 }

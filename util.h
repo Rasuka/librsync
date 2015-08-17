@@ -27,6 +27,7 @@ void *rs_alloc_struct0(size_t size, char const *name);
 
 void rs_bzero(void *buf, size_t size);
 
+#define MIN(x,y)			(((x) <= (y)) ? (x) : (y))
 
 /*
  * Allocate and zero-fill an instance of TYPE.

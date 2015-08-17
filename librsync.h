@@ -215,7 +215,6 @@ typedef struct rs_stats {
     rs_long_t       out_bytes;  /**< Total bytes written to output. */
 } rs_stats_t;
 
-
 /** \typedef struct rs_mdfour rs_mdfour_t
  *
  * \brief MD4 message-digest accumulator.
@@ -429,18 +428,16 @@ extern int rs_inbuflen, rs_outbuflen;
  */
 void rs_mdfour_file(FILE *in_file, char *result);
 
-rs_result rs_sig_file(FILE *old_file, FILE *sig_file,
-                      size_t block_len, size_t strong_len,
-		      rs_magic_number sign_magic,
-		      rs_stats_t *);
+rs_result rs_sig_file(FILE *old_file, FILE *sig_file, size_t block_len, size_t strong_len, rs_magic_number sign_magic,
+			          rs_stats_t *, char* checksum, size_t checksum_len);
 
 rs_result rs_loadsig_file(FILE *, rs_signature_t **, rs_stats_t *);
 
 rs_result rs_file_copy_cb(void *arg, rs_long_t pos, size_t *len, void **buf);
 
-rs_result rs_delta_file(rs_signature_t *, FILE *new_file, FILE *delta_file, rs_stats_t *);
+rs_result rs_delta_file(rs_signature_t *, FILE *new_file, FILE *delta_file, rs_stats_t *, char* checksum, size_t checksum_len);
 
-rs_result rs_patch_file(FILE *basis_file, FILE *delta_file, FILE *new_file, rs_stats_t *);
+rs_result rs_patch_file(FILE *basis_file, FILE *delta_file, FILE *new_file, rs_stats_t *, char* checksum, size_t checksum_len);
 #endif /* ! RSYNC_NO_STDIO_INTERFACE */
 
 #ifdef __cplusplus

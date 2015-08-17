@@ -179,6 +179,16 @@ rs_job_t * rs_sig_begin(size_t new_block_len, size_t strong_sum_len,
         job->strong_sum_len = strong_sum_len;
     }
 
+	if (blake2b_init(&job->checksum.state, BLAKE2B_OUTBYTES) == -1)
+	{
+		rs_error("Failed to init blake2b.");
+		return NULL;
+	}
+	job->checksum.direction = RS_CHECKSUM_ON_INPUT;
+	job->checksum.checksum = rs_alloc(BLAKE2B_OUTBYTES + 1, "checksumoutbytes");
+	job->checksum.checksum_len = BLAKE2B_OUTBYTES;
+	rs_bzero(job->checksum.checksum, BLAKE2B_OUTBYTES + 1);
+
     return job;
 }
 

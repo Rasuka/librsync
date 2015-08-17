@@ -238,24 +238,44 @@ static void rdiff_options(poptContext opcon)
     }
 }
 
+static void print_checksum(char* checksum)
+{
+	size_t	i;
+	size_t	buffer_len = strlen(checksum);
+	
+	printf("Checksum: ");
+
+	for (i = 0; i < 64; i++)
+	{
+		printf("%02x", checksum[i] & 0xFF);
+	}
+
+	printf("\r\n");
+}
 
 /**
  * Generate signature from remaining command line arguments.
  */
 static rs_result rdiff_sig_internal(poptContext opcon)
 {
+	rs_result		result;
     char const      *base_name;
     char const      *sig_name;
+	char checksum[65] = { 0 };
     
     base_name = poptGetArg(opcon);
     sig_name = poptGetArg(opcon);
 
     rdiff_no_more_args(opcon);
 
-    return rdiff_sig(base_name, sig_name);
+	result = rdiff_sig(base_name, sig_name, checksum, sizeof(checksum));
+
+	print_checksum(checksum);
+
+	return result;
 }
 
-rs_result rdiff_sig(const char *baseFile, const char *sigFile)
+rs_result rdiff_sig(const char *baseFile, const char *sigFile, char* checksum, size_t checksum_len)
 {
     FILE            *basis_file, *sig_file;
     rs_stats_t      stats;
@@ -280,8 +300,7 @@ rs_result rdiff_sig(const char *baseFile, const char *sigFile)
         return RS_PARAM_ERROR;
     }
 
-    result = rs_sig_file(basis_file, sig_file, block_len, strong_len,
-                         sig_magic, &stats);
+    result = rs_sig_file(basis_file, sig_file, block_len, strong_len, sig_magic, &stats, checksum, checksum_len);
 
     rs_file_close(sig_file);
     rs_file_close(basis_file);
@@ -297,7 +316,9 @@ rs_result rdiff_sig(const char *baseFile, const char *sigFile)
 
 static rs_result rdiff_delta_internal(poptContext opcon)
 {
+	rs_result		result;
     char const      *sig_name, *new_name, *delta_name;
+	char checksum[65] = { 0 };
 
     if (!(sig_name = poptGetArg(opcon))) {
         rdiff_usage("Usage for delta: "
@@ -310,10 +331,14 @@ static rs_result rdiff_delta_internal(poptContext opcon)
 
 	rdiff_no_more_args(opcon);
 
-    return rdiff_delta(sig_name, new_name, delta_name);
+	result = rdiff_delta(sig_name, new_name, delta_name, checksum, sizeof(checksum));
+
+	print_checksum(checksum);
+
+	return result;
 }
 
-rs_result rdiff_delta(const char *sigFile, const char *newFile, const char *deltaFile)
+rs_result rdiff_delta(const char *sigFile, const char *newFile, const char *deltaFile, char* checksum, size_t checksum_len)
 {
     FILE            *sig_file, *new_file, *delta_file;
     rs_result       result;
@@ -334,7 +359,7 @@ rs_result rdiff_delta(const char *sigFile, const char *newFile, const char *delt
     if ((result = rs_build_hash_table(sumset)) != RS_DONE)
         return result;
 
-    result = rs_delta_file(sumset, new_file, delta_file, &stats);
+    result = rs_delta_file(sumset, new_file, delta_file, &stats, checksum, checksum_len);
 
     rs_free_sumset(sumset);
 
@@ -351,7 +376,9 @@ rs_result rdiff_delta(const char *sigFile, const char *newFile, const char *delt
 static rs_result rdiff_patch_internal(poptContext opcon)
 {
     /*  patch BASIS [DELTA [NEWFILE]] */
+	rs_result			result;
     char const         *basis_name, *delta_name, *new_name;
+	char checksum[65] = { 0 };
 
     if (!(basis_name = poptGetArg(opcon))) {
         rdiff_usage("Usage for patch: "
@@ -364,7 +391,11 @@ static rs_result rdiff_patch_internal(poptContext opcon)
 
 	rdiff_no_more_args(opcon);
 
-    return rdiff_patch(basis_name, delta_name, new_name);
+	result = rdiff_patch(basis_name, delta_name, new_name, checksum, sizeof(checksum));
+
+	print_checksum(checksum);
+
+	return result;
 }
 
 //static void mytrace(int level, char const *msg)
@@ -376,7 +407,7 @@ static rs_result rdiff_patch_internal(poptContext opcon)
 //	fclose(logfile);
 //}
 
-rs_result rdiff_patch(const char *baseFile, const char *deltaFile, const char *newFile)
+rs_result rdiff_patch(const char *baseFile, const char *deltaFile, const char *newFile, char* checksum, size_t checksum_len)
 {
     /*  patch BASIS [DELTA [NEWFILE]] */
     FILE               *basis_file, *delta_file, *new_file;
@@ -397,7 +428,7 @@ rs_result rdiff_patch(const char *baseFile, const char *deltaFile, const char *n
 	if (new_file == NULL)
 		return RS_IO_ERROR;
 
-    result = rs_patch_file(basis_file, delta_file, new_file, &stats);
+    result = rs_patch_file(basis_file, delta_file, new_file, &stats, checksum, checksum_len);
 
     rs_file_close(new_file);
     rs_file_close(delta_file);

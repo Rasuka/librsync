@@ -315,5 +315,15 @@ rs_patch_begin(rs_copy_cb *copy_cb, void *copy_arg)
 
     rs_mdfour_begin(&job->output_md4);
 
+	if (blake2b_init(&job->checksum.state, BLAKE2B_OUTBYTES) == -1)
+	{
+		rs_error("Failed to init blake2b.");
+		return NULL;
+	}
+	job->checksum.direction = RS_CHECKSUM_ON_OUTPUT;
+	job->checksum.checksum = rs_alloc(BLAKE2B_OUTBYTES + 1, "checksumoutbytes");
+	job->checksum.checksum_len = BLAKE2B_OUTBYTES;
+	rs_bzero(job->checksum.checksum, BLAKE2B_OUTBYTES + 1);
+
     return job;
 }
