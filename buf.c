@@ -146,7 +146,7 @@ rs_result rs_infilebuf_fill(rs_job_t *job, rs_buffers_t *buf,
     buf->avail_in = len;
     buf->next_in = fb->buf;
 
-	if (job->checksum.direction == RS_CHECKSUM_ON_INPUT)
+	if (job->checksum.checksum != NULL && job->checksum.direction == RS_CHECKSUM_ON_INPUT)
 	{
 		blake2b_update(&job->checksum.state, (const uint8_t *)fb->buf, len);
 	}
@@ -197,7 +197,7 @@ rs_result rs_outfilebuf_drain(rs_job_t *job, rs_buffers_t *buf, void *opaque)
         buf->next_out = fb->buf;
         buf->avail_out = fb->buf_len;
 
-		if (job->checksum.direction == RS_CHECKSUM_ON_OUTPUT)
+		if (job->checksum.checksum != NULL && job->checksum.direction == RS_CHECKSUM_ON_OUTPUT)
 		{
 			blake2b_update(&job->checksum.state, (const uint8_t *)fb->buf, present);
 		}

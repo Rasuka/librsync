@@ -86,7 +86,7 @@ rs_whole_run(rs_job_t *job, FILE *in_file, FILE *out_file)
     if (out_fb)
         rs_filebuf_free(out_fb);
 
-	if (job->checksum.direction != RS_CHECKSUM_NONE)
+	if (job->checksum.checksum != NULL && job->checksum.direction != RS_CHECKSUM_NONE)
 	{
 		blake2b_final(&job->checksum.state, job->checksum.checksum, BLAKE2B_OUTBYTES);
 	}
