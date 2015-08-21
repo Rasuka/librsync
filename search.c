@@ -169,75 +169,83 @@ rs_search_for_block(rs_weak_sum_t weak_sum,
                     rs_signature_t const *sig, rs_stats_t * stats,
                     rs_long_t * match_where)
 {
-    /* Caller must have called rs_build_hash_table() by now */
-    if (!sig->tag_table)
-        rs_fatal("Must have called rs_build_hash_table() by now");
+	/* Caller must have called rs_build_hash_table() by now */
+	if (!sig->tag_table)
+		rs_fatal("Must have called rs_build_hash_table() by now");
 
-    rs_strong_sum_t strong_sum;
-    int got_strong = 0;
-    int hash_tag = gettag(weak_sum);
-    rs_tag_table_entry_t *bucket = &(sig->tag_table[hash_tag]);
-    int l = bucket->l;
-    int r = bucket->r + 1;
-    int v = 1;
+	rs_strong_sum_t strong_sum;
+	int got_strong = 0;
+	int hash_tag = gettag(weak_sum);
+	rs_tag_table_entry_t *bucket = &(sig->tag_table[hash_tag]);
+	int l = bucket->l;
+	int r = bucket->r + 1;
+	int v = 1;
 
-    if (l == NULL_TAG)
-	return 0;
+	if (l == NULL_TAG)
+		return 0;
 
-    while (l < r) {
-	int m = (l + r) >> 1;
-	int i = sig->targets[m].i;
-	rs_block_sig_t *b = &(sig->block_sigs[i]);
-	v = (weak_sum > b->weak_sum) - (weak_sum < b->weak_sum); // v < 0  - weak_sum <  b->weak_sum
-								 // v == 0 - weak_sum == b->weak_sum
-								 // v > 0  - weak_sum >  b->weak_sum
-	if (v == 0) {
-	    if (!got_strong) {
-		if(sig->magic == RS_BLAKE2_SIG_MAGIC) {
-		    rs_calc_blake2_sum(inbuf, block_len, &strong_sum);
-		} else if (sig->magic == RS_MD4_SIG_MAGIC) {
-		    rs_calc_md4_sum(inbuf, block_len, &strong_sum);
-		} else {
-		    rs_error("Unknown signature algorithm - this is a BUG");
-		    return 0; /* FIXME: Is this the best way to handle this? */
+	while (l < r) {
+		int m = (l + r) >> 1;
+		int i = sig->targets[m].i;
+		rs_block_sig_t *b = &(sig->block_sigs[i]);
+		v = (weak_sum > b->weak_sum) - (weak_sum < b->weak_sum); // v < 0  - weak_sum <  b->weak_sum
+		// v == 0 - weak_sum == b->weak_sum
+		// v > 0  - weak_sum >  b->weak_sum
+		if (v == 0) {
+			if (!got_strong) {
+				if (sig->magic == RS_BLAKE2_SIG_MAGIC) {
+					rs_calc_blake2_sum(inbuf, block_len, &strong_sum);
+				}
+				else if (sig->magic == RS_MD4_SIG_MAGIC) {
+					rs_calc_md4_sum(inbuf, block_len, &strong_sum);
+				}
+				else {
+					rs_error("Unknown signature algorithm - this is a BUG");
+					return 0; /* FIXME: Is this the best way to handle this? */
+				}
+				got_strong = 1;
+			}
+			v = memcmp(strong_sum, b->strong_sum, sig->strong_sum_len);
+
+			if (v == 0) {
+				l = m;
+				r = m;
+				break;
+			}
 		}
-		got_strong = 1;
-	    }
-	    v = memcmp(strong_sum, b->strong_sum, sig->strong_sum_len);
 
-	    if (v == 0) {
-		l = m;
-		r = m;
-		break;
-	    }
+		if (v > 0)
+			l = m + 1;
+		else
+			r = m;
 	}
 
-	if (v > 0)
-	    l = m + 1;
-	else
-	    r = m;
-    }
-
-    if (l == r) {
-	int i = sig->targets[l].i;
-	rs_block_sig_t *b = &(sig->block_sigs[i]);
-	if (weak_sum != b->weak_sum)
-	    return 0;
-	if (!got_strong) {
-            if(sig->magic == RS_BLAKE2_SIG_MAGIC) {
-	        rs_calc_blake2_sum(inbuf, block_len, &strong_sum);
-	    } else if (sig->magic == RS_MD4_SIG_MAGIC) {
-                rs_calc_md4_sum(inbuf, block_len, &strong_sum);
-	    } else {
-	        rs_error("Unknown signature algorithm - this is a BUG");
-		return 0; /* FIXME: Is this the best way to handle this? */
-	    }
-	    got_strong = 1;
+	if (l == r) {
+		if (l >= sig->count) {
+			rs_trace("l exceeds sig count");
+			return 0;
+		}
+		int i = sig->targets[l].i;
+		rs_block_sig_t *b = &(sig->block_sigs[i]);
+		if (weak_sum != b->weak_sum)
+			return 0;
+		if (!got_strong) {
+			if (sig->magic == RS_BLAKE2_SIG_MAGIC) {
+				rs_calc_blake2_sum(inbuf, block_len, &strong_sum);
+			}
+			else if (sig->magic == RS_MD4_SIG_MAGIC) {
+				rs_calc_md4_sum(inbuf, block_len, &strong_sum);
+			}
+			else {
+				rs_error("Unknown signature algorithm - this is a BUG");
+				return 0; /* FIXME: Is this the best way to handle this? */
+			}
+			got_strong = 1;
+		}
+		v = memcmp(strong_sum, b->strong_sum, sig->strong_sum_len);
+		int token = b->i;
+		*match_where = (rs_long_t)(token - 1) * sig->block_len;
 	}
-	v = memcmp(strong_sum, b->strong_sum, sig->strong_sum_len);
-	int token = b->i;
-	*match_where = (rs_long_t)(token - 1) * sig->block_len;
-    }
 
-    return !v;
+	return !v;
 }
