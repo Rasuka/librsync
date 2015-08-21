@@ -99,7 +99,7 @@ rs_squirt_netint(rs_job_t *job, rs_long_t d, int len)
     /* Fill the output buffer with a bigendian representation of the
      * number. */
     for (i = len-1; i >=0; i--) {
-        buf[i] = d;             /* truncated */
+        buf[i] = (unsigned char) d;             /* truncated */
         d >>= 8;
     }
 
@@ -180,5 +180,6 @@ int rs_int_len(rs_long_t val)
         return 8;
     else {
         rs_fatal("can't encode integer " PRINTF_FORMAT_U64 " yet", PRINTF_CAST_U64(val));
+		return -1;
     }
 }

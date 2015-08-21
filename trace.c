@@ -49,6 +49,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <io.h>
 
 #include "librsync.h"
 #include "util.h"
@@ -131,7 +132,7 @@ rs_log_va(int flags, char const *fn, char const *fmt, va_list va)
                      MY_NAME, rs_severities[level], fn, buf);
         } 
 
-	rs_trace_impl(level, full_buf);
+		rs_trace_impl(level, full_buf);
     }
 }
 
@@ -164,12 +165,11 @@ rs_log0(int level, char const *fn, char const *fmt, ...)
     va_end(va);
 }
 
-
 void
 rs_trace_stderr(int UNUSED(level), char const *msg)
 {
     /* NOTE NO TRAILING NUL */
-    write(STDERR_FILENO, msg, strlen(msg));
+    _write(STDERR_FILENO, msg, (unsigned int) strlen(msg));
 }
 
 

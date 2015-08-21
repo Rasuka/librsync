@@ -13,7 +13,7 @@
 #endif
 
 static void configLine(poptContext con, char * line) {
-    int nameLength = strlen(con->appName);
+    int nameLength = (int) strlen(con->appName);
     char * opt;
     struct poptAlias alias;
     char * entryType;

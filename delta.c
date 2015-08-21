@@ -260,11 +260,11 @@ inline int rs_findmatch(rs_job_t *job, rs_long_t *match_pos, size_t *match_len) 
     if (job->weak_sum.count == 0) {
         /* set match_len to min(block_len, scan_avail) */
         *match_len=job->scoop_avail - job->scoop_pos;
-        if (*match_len > job->block_len) {
+        if (*match_len > (unsigned) job->block_len) {
             *match_len = job->block_len;
         }
         /* Update the weak_sum */
-        RollsumUpdate(&job->weak_sum,job->scoop_next+job->scoop_pos,*match_len);
+        RollsumUpdate(&job->weak_sum, job->scoop_next + job->scoop_pos, (unsigned int)*match_len);
         rs_trace("calculate weak sum from scratch length %d",(int)job->weak_sum.count);
     } else {
         /* set the match_len to the weak_sum count */
@@ -288,13 +288,13 @@ inline rs_result rs_appendmatch(rs_job_t *job, rs_long_t match_pos, size_t match
     
     /* if last was a match that can be extended, extend it */
     if (job->basis_len && (job->basis_pos + job->basis_len) == match_pos) {
-        job->basis_len+=match_len;
+        job->basis_len += (rs_long_t) match_len;
     } else {
         /* else appendflush the last value */
         result=rs_appendflush(job);
         /* make this the new match value */
-        job->basis_pos=match_pos;
-        job->basis_len=match_len;
+        job->basis_pos = match_pos;
+        job->basis_len = (rs_long_t) match_len;
     }
     /* increment scoop_pos to point at next unscanned data */
     job->scoop_pos+=match_len;
@@ -315,10 +315,10 @@ inline rs_result rs_appendmatch(rs_job_t *job, rs_long_t match_pos, size_t match
  * too much in memory. */
 inline rs_result rs_appendmiss(rs_job_t *job, size_t miss_len)
 {
-    rs_result result=RS_DONE;
+    rs_result result = RS_DONE;
     
     /* if last was a match, or block_len misses, appendflush it */
-    if (job->basis_len || (job->scoop_pos >= rs_outbuflen)) {
+    if (job->basis_len || (job->scoop_pos >= (unsigned) rs_outbuflen)) {
         result=rs_appendflush(job);
     }
     /* increment scoop_pos */
@@ -343,7 +343,7 @@ inline rs_result rs_appendflush(rs_job_t *job)
     /* else if last is a miss, emit and process it*/
     } else if (job->scoop_pos) {
         rs_trace("got %ld bytes of literal data", (long) job->scoop_pos);
-        rs_emit_literal_cmd(job, job->scoop_pos);
+        rs_emit_literal_cmd(job, (int) job->scoop_pos);
         return rs_processmiss(job);
     }
     /* otherwise, nothing to flush so we are done */
@@ -385,7 +385,7 @@ inline rs_result rs_processmatch(rs_job_t *job)
  * it. */
 inline rs_result rs_processmiss(rs_job_t *job)
 {
-    rs_tube_copy(job, job->scoop_pos);
+    rs_tube_copy(job, (int) job->scoop_pos);
     job->scoop_pos=0;
     return rs_tube_catchup(job);
 }
@@ -403,8 +403,8 @@ static rs_result rs_delta_s_slack(rs_job_t *job)
     if (avail) {
         rs_trace("emit slack delta for " PRINTF_FORMAT_U64
                  " available bytes", PRINTF_CAST_U64(avail));
-        rs_emit_literal_cmd(job, avail);
-        rs_tube_copy(job, avail);
+        rs_emit_literal_cmd(job, (int) avail);
+        rs_tube_copy(job, (int) avail);
         return RS_RUNNING;
     } else {
         if (rs_job_input_is_ending(job)) {

@@ -111,8 +111,7 @@ rs_emit_copy_cmd(rs_job_t *job, rs_long_t where, rs_long_t len)
     else if (where_bytes == 1)
         cmd = RS_OP_COPY_N1_N1;
     else {
-        rs_fatal("can't encode copy command with where_bytes=%d",
-                 where_bytes);
+        rs_fatal("can't encode copy command with where_bytes=%d", where_bytes);
     }
 
     if (len_bytes == 1)
@@ -124,8 +123,7 @@ rs_emit_copy_cmd(rs_job_t *job, rs_long_t where, rs_long_t len)
     else if (len_bytes == 8)
         cmd += 3;
     else {
-        rs_fatal("can't encode copy command with len_bytes=%d",
-                 len_bytes);
+        rs_fatal("can't encode copy command with len_bytes=%d", len_bytes);
     }       
 
     rs_trace("emit COPY_N%d_N%d(where=" PRINTF_FORMAT_U64

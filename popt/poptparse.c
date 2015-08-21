@@ -47,7 +47,7 @@ int poptParseArgvString(const char * s, int * argcPtr, const char *** argvPtr)
     int argvAlloced = POPT_ARGV_ARRAY_GROW_DELTA;
     const char ** argv = malloc(sizeof(*argv) * argvAlloced);
     int argc = 0;
-    int buflen = strlen(s) + 1;
+    int buflen = (int) (strlen(s) + 1);
     char * buf = memset(alloca(buflen), 0, buflen);
 
     argv[argc] = buf;

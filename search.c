@@ -80,32 +80,33 @@ int rs_compare_targets(rs_target_t const *t1, rs_target_t const *t2, rs_signatur
 	    sums->strong_sum_len);
 }
 
-static int heap_sort(rs_signature_t * sums) {
-    unsigned int i, j, c, n, k, p;
-    for (i = 1; i < sums->count; ++i) {
-	for (j = i; j > 0;) {
-	    p = (j - 1) >> 1;
-	    if (rs_compare_targets(&sums->targets[j], &sums->targets[p], sums) > 0)
-		swap(&sums->targets[j], &sums->targets[p]);
-	    else
-		break;
-	    j = p;
-	}
+static void heap_sort(rs_signature_t * sums) {
+    unsigned int i, j, n, k, p;
+    
+	for (i = 1; i < (unsigned int) sums->count; ++i) {
+		for (j = i; j > 0;) {
+			p = (j - 1) >> 1;
+			if (rs_compare_targets(&sums->targets[j], &sums->targets[p], sums) > 0)
+				swap(&sums->targets[j], &sums->targets[p]);
+			else
+				break;
+			j = p;
+		}
     }
 
     for (n = sums->count - 1; n > 0;) {
-	swap(&sums->targets[0], &sums->targets[n]);
-	--n;
-	for (i = 0; ((i << 1) + 1) <= n;) {
-	    k = (i << 1) + 1;
-	    if ((k + 1 <= n) && (rs_compare_targets(&sums->targets[k], &sums->targets[k + 1], sums) < 0))
-		k = k + 1;
-	    if (rs_compare_targets(&sums->targets[k], &sums->targets[i], sums) > 0)
-		swap(&sums->targets[k], &sums->targets[i]);
-	    else
-		break;
-	    i = k;
-	}
+		swap(&sums->targets[0], &sums->targets[n]);
+		--n;
+		for (i = 0; ((i << 1) + 1) <= n;) {
+			k = (i << 1) + 1;
+			if ((k + 1 <= n) && (rs_compare_targets(&sums->targets[k], &sums->targets[k + 1], sums) < 0))
+				k = k + 1;
+			if (rs_compare_targets(&sums->targets[k], &sums->targets[i], sums) > 0)
+				swap(&sums->targets[k], &sums->targets[i]);
+			else
+				break;
+			i = k;
+		}
     }
 }
 

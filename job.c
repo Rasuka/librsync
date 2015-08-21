@@ -142,8 +142,8 @@ rs_result rs_job_iter(rs_job_t *job, rs_buffers_t *buffers)
     rs_result       result;
     rs_long_t       orig_in, orig_out;
 
-    orig_in  = buffers->avail_in;
-    orig_out = buffers->avail_out;
+    orig_in  = (rs_long_t) buffers->avail_in;
+    orig_out = (rs_long_t) buffers->avail_out;
 
     result = rs_job_work(job, buffers);
 
@@ -245,7 +245,7 @@ rs_job_drive(rs_job_t *job, rs_buffers_t *buf,
         if (result != RS_DONE  &&  result != RS_BLOCKED)
             return result;
 
-        if (out_cb) {
+        if (out_cb != NULL) {
             iores = (out_cb)(job, buf, out_opaque);
             if (iores != RS_DONE)
                 return iores;

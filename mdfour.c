@@ -191,14 +191,14 @@ copy4( /* @out@ */ unsigned char *out, uint32_t const x)
 inline static void
 copy8( /* @out@ */ unsigned char *out, uint64_t const x)
 {
-    out[0] = x;
-    out[1] = x >> 8;
-    out[2] = x >> 16;
-    out[3] = x >> 24;
-    out[4] = x >> 32;
-    out[5] = x >> 40;
-    out[6] = x >> 48;
-    out[7] = x >> 56;
+    out[0] = (unsigned char) x;
+	out[1] = (unsigned char) (x >> 8);
+	out[2] = (unsigned char) (x >> 16);
+	out[3] = (unsigned char) (x >> 24);
+	out[4] = (unsigned char) (x >> 32);
+	out[5] = (unsigned char) (x >> 40);
+	out[6] = (unsigned char) (x >> 48);
+	out[7] = (unsigned char) (x >> 56);
 }
 #endif /* HAVE_UINT64 */
 
@@ -363,7 +363,7 @@ rs_mdfour_update(rs_mdfour_t * md, void const *in_void, size_t n)
     /* Put remaining bytes onto tail*/
     if (n) {
         memcpy(&md->tail[md->tail_len], in, n);
-        md->tail_len += n;
+        md->tail_len += (int) n;
     }
 }
 

@@ -84,7 +84,7 @@ rs_sig_do_block(rs_job_t *job, const void *block, size_t len)
     unsigned int        weak_sum;
     rs_strong_sum_t     strong_sum;
 
-    weak_sum = rs_calc_weak_sum(block, len);
+    weak_sum = rs_calc_weak_sum(block, (int) len);
 
     if (job->magic == RS_BLAKE2_SIG_MAGIC) {
         rs_calc_blake2_sum(block, len, &strong_sum);
@@ -153,7 +153,7 @@ rs_job_t * rs_sig_begin(size_t new_block_len, size_t strong_sum_len,
     int native_length;
 
     job = rs_job_new("signature", rs_sig_s_header);
-    job->block_len = new_block_len;
+    job->block_len = (int) new_block_len;
 
     if (!sig_magic)
         sig_magic = RS_BLAKE2_SIG_MAGIC;
@@ -175,8 +175,8 @@ rs_job_t * rs_sig_begin(size_t new_block_len, size_t strong_sum_len,
     if (!strong_sum_len)
         job->strong_sum_len = native_length;
     else {
-        assert(strong_sum_len <= native_length);
-        job->strong_sum_len = strong_sum_len;
+        assert(strong_sum_len <= (unsigned) native_length);
+        job->strong_sum_len = (int) strong_sum_len;
     }
 
 	/*if (blake2b_init(&job->checksum.state, BLAKE2B_OUTBYTES) == -1)

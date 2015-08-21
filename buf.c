@@ -124,7 +124,7 @@ rs_result rs_infilebuf_fill(rs_job_t *job, rs_buffers_t *buf,
            anyhow? */
         return RS_DONE;
         
-    len = fread(fb->buf, 1, fb->buf_len, f);
+    len = (int) fread(fb->buf, 1, fb->buf_len, f);
     if (len <= 0) {
         /* This will happen if file size is a multiple of input block len
          */
@@ -134,12 +134,10 @@ rs_result rs_infilebuf_fill(rs_job_t *job, rs_buffers_t *buf,
             return RS_DONE;
         }
         if (ferror(f)) {
-            rs_error("error filling buf from file: %s",
-                     strerror(errno));
+            rs_error("error filling buf from file: %s", strerror(errno));
             return RS_IO_ERROR;
         } else {
-            rs_error("no error bit, but got %d return when trying to read",
-                     len);
+            rs_error("no error bit, but got %d return when trying to read", len);
             return RS_IO_ERROR;
         }
     }
@@ -180,17 +178,17 @@ rs_result rs_outfilebuf_drain(rs_job_t *job, rs_buffers_t *buf, void *opaque)
     assert(buf->avail_out <= fb->buf_len);
     assert(buf->next_out >= fb->buf);
     assert(buf->next_out <= fb->buf + fb->buf_len);
+	assert(buf->next_out - fb->buf <= INT_MAX);
 
-    present = buf->next_out - fb->buf;
+    present = (int) (buf->next_out - fb->buf);
     if (present > 0) {
         int result;
                 
         assert(present > 0);
 
-        result = fwrite(fb->buf, 1, present, f);
+        result = (int) fwrite(fb->buf, 1, present, f);
         if (present != result) {
-            rs_error("error draining buf to file: %s",
-                     strerror(errno));
+            rs_error("error draining buf to file: %s", strerror(errno));
             return RS_IO_ERROR;
         }
 
@@ -220,12 +218,12 @@ rs_result rs_file_copy_cb(void *arg, rs_long_t pos, size_t *len, void **buf)
         return RS_IO_ERROR;
     }
 
-    got = fread(*buf, 1, *len, f);
+    got = (int) fread(*buf, 1, *len, f);
     if (got == -1) {
         rs_error("read error: %s", strerror(errno));
         return RS_IO_ERROR;
     } else if (got == 0) {
-        rs_error("unexpected eof on fd%d", fileno(f));
+        rs_error("unexpected eof on fd%d", _fileno(f));
         return RS_INPUT_ENDED;
     } else {
         *len = got;

@@ -81,7 +81,7 @@ static void rs_tube_catchup_write(rs_job_t *job)
 
     assert(len > 0);
     if ((size_t) len > stream->avail_out)
-        len = stream->avail_out;
+        len = (int) stream->avail_out;
 
     if (!stream->avail_out) {
         rs_trace("no output space available");
@@ -135,7 +135,7 @@ rs_tube_copy_from_scoop(rs_job_t *job)
     job->scoop_avail -= this_len;
     job->scoop_next += this_len;
 
-    job->copy_len -= this_len;
+    job->copy_len -= (rs_long_t) this_len;
 
     rs_trace("caught up on %ld copied bytes from scoop, %ld remain there, "
              "%ld remain to be copied", 
@@ -168,7 +168,7 @@ static void rs_tube_catchup_copy(rs_job_t *job)
 
         this_copy = rs_buffers_copy(stream, job->copy_len);
 
-        job->copy_len -= this_copy;
+		job->copy_len -= (rs_long_t) this_copy;
 
         rs_trace("copied " PRINTF_FORMAT_U64 " bytes from input buffer, " PRINTF_FORMAT_U64 " remain to be copied",
                  PRINTF_CAST_U64(this_copy), PRINTF_CAST_U64(job->copy_len));
@@ -260,5 +260,5 @@ rs_tube_write(rs_job_t *job, const void *buf, size_t len)
     }
 
     memcpy(job->write_buf + job->write_len, buf, len);
-    job->write_len += len;
+    job->write_len += (int) len;
 }

@@ -89,7 +89,7 @@ static rs_result rs_patch_s_cmdbyte(rs_job_t *job)
 static rs_result rs_patch_s_params(rs_job_t *job)
 {
     rs_result result;
-    int len = job->cmd->len_1 + job->cmd->len_2;
+    int len = (int) (job->cmd->len_1 + job->cmd->len_2);
     void *p;
 
     assert(len);
@@ -99,12 +99,12 @@ static rs_result rs_patch_s_params(rs_job_t *job)
         return result;
 
     /* we now must have LEN bytes buffered */
-    result = rs_suck_netint(job, &job->param1, job->cmd->len_1);
+    result = rs_suck_netint(job, &job->param1, (int) job->cmd->len_1);
     /* shouldn't fail, since we already checked */
     assert(result == RS_DONE);
 
     if (job->cmd->len_2) {
-        result = rs_suck_netint(job, &job->param2, job->cmd->len_2);
+        result = rs_suck_netint(job, &job->param2, (int) job->cmd->len_2);
         assert(result == RS_DONE);
     }
 
@@ -158,7 +158,7 @@ static rs_result rs_patch_s_literal(rs_job_t *job)
 
     job->stats.lit_cmds++;
     job->stats.lit_bytes    += len;
-    job->stats.lit_cmdbytes += 1 + job->cmd->len_1;
+    job->stats.lit_cmdbytes += (rs_long_t) (1 + job->cmd->len_1);
 
     rs_tube_copy(job, len);
 
@@ -195,7 +195,7 @@ static rs_result rs_patch_s_copy(rs_job_t *job)
 
     stats->copy_cmds++;
     stats->copy_bytes += len;
-    stats->copy_cmdbytes += 1 + job->cmd->len_1 + job->cmd->len_2;
+    stats->copy_cmdbytes += (rs_long_t) (1 + job->cmd->len_1 + job->cmd->len_2);
 
     job->statefn = rs_patch_s_copying;
     return RS_RUNNING;
@@ -215,7 +215,7 @@ static rs_result rs_patch_s_copying(rs_job_t *job)
 
     /* copy only as much as will fit in the output buffer, so that we
      * don't have to block or store the input. */
-    len = (buffs->avail_out < job->basis_len) ? buffs->avail_out : job->basis_len;
+    len = (buffs->avail_out < (size_t) job->basis_len) ? buffs->avail_out : job->basis_len;
 
     if (!len)
         return RS_BLOCKED;
@@ -238,8 +238,8 @@ static rs_result rs_patch_s_copying(rs_job_t *job)
     buffs->next_out += len;
     buffs->avail_out -= len;
 
-    job->basis_pos += len;
-    job->basis_len -= len;
+    job->basis_pos += (rs_long_t) len;
+	job->basis_len -= (rs_long_t) len;
 
     free(buf);
 

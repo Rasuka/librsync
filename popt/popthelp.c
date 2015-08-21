@@ -87,7 +87,7 @@ static void singleOptionHelp(FILE * f, int maxLeftCol,
 	goto out;
     }
 
-    helpLength = strlen(help);
+    helpLength = (int) strlen(help);
     while (helpLength > lineLength) {
 	ch = help + lineLength - 1;
 	while (ch > help && !isspace(*ch)) ch--;
@@ -99,7 +99,7 @@ static void singleOptionHelp(FILE * f, int maxLeftCol,
 	fprintf(f, format, help, " ");
 	help = ch;
 	while (isspace(*help) && *help) help++;
-	helpLength = strlen(help);
+	helpLength = (int) strlen(help);
     }
 
     if (helpLength) fprintf(f, "%s\n", help);
@@ -122,12 +122,12 @@ static int maxArgWidth(const struct poptOption * opt,
 	    this = opt->shortName ? 2 : 0;
 	    if (opt->longName) {
 		if (this) this += 2;
-		this += strlen(opt->longName) + 2;
+		this += (int) strlen(opt->longName) + 2;
 	    }
 
 	    s = getArgDescrip(opt, translation_domain);
 	    if (s)
-		this += strlen(s) + 1;
+		this += (int) (strlen(s) + 1);
 	    if (this > max) max = this;
 	}
 
@@ -176,7 +176,7 @@ static int showHelpIntro(poptContext con, FILE * f) {
 	fn = con->optionStack->argv[0];
 	if (strchr(fn, '/')) fn = strchr(fn, '/') + 1;
 	fprintf(f, " %s", fn);
-	len += strlen(fn) + 1;
+	len += (int) (strlen(fn) + 1);
     }
 
     return len;
@@ -210,14 +210,14 @@ static int singleOptionUsage(FILE * f, int cursor,
 	*shortStr = opt->shortName;
 	shortStr[1] = '\0';
     } else if (opt->longName) {
-	len += 1 + strlen(opt->longName);
+	len += (int) (1 + strlen(opt->longName));
 	item = opt->longName;
     }
 
     if (len == 3) return cursor;
 
     if (argDescrip) 
-	len += strlen(argDescrip) + 1;
+	len += (int) (strlen(argDescrip) + 1);
 
     if ((cursor + len) > 79) {
 	fprintf(f, "\n       ");
@@ -276,7 +276,7 @@ static int showShortOptions(const struct poptOption * opt, FILE * f,
 	return 0;
 
     fprintf(f, " [-%s]", s);
-    return strlen(s) + 4;
+    return (int) (strlen(s) + 4);
 }
 
 void poptPrintUsage(poptContext con, FILE * f, /*@unused@*/ int flags) {
@@ -287,7 +287,7 @@ void poptPrintUsage(poptContext con, FILE * f, /*@unused@*/ int flags) {
     singleTableUsage(f, cursor, con->options, NULL);
 
     if (con->otherHelp) {
-	cursor += strlen(con->otherHelp) + 1;
+	cursor += (int) (strlen(con->otherHelp) + 1);
 	if (cursor > 79) fprintf(f, "\n       ");
 	fprintf(f, " %s", con->otherHelp);
     }
